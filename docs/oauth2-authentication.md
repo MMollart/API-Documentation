@@ -63,9 +63,11 @@ https://www.onlinescoutmanager.co.uk/oauth/authorize?response_type=code&client_i
 **Parameters:**
 - `response_type`: Must be `code`
 - `client_id`: Your application's client ID
-- `redirect_uri`: URL where OSM will redirect after login (must be registered)
+- `redirect_uri`: HTTPS URL where OSM will redirect after login (must be registered with OSM)
 - `scope`: Space-separated list of permissions
 - `state`: Random string for CSRF protection (recommended)
+
+**IMPORTANT**: OSM requires `redirect_uri` to start with `https://`. For local development, use ngrok or localhost.run to create an HTTPS tunnel.
 
 ### Step 2: User Logs In
 
@@ -113,6 +115,72 @@ GET /ext/members/contact/?action=getListOfMembers&sectionid=12345&termid=67890 H
 Host: www.onlinescoutmanager.co.uk
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
+
+---
+
+## HTTPS Redirect URI Requirement
+
+**OSM Security Policy**: All redirect URIs MUST start with `https://`
+
+### Why HTTPS is Required
+- Prevents token interception over insecure connections
+- Protects user credentials during OAuth flow
+- Industry standard for OAuth2 security (RFC 6749)
+
+### Local Development Setup
+
+Since `http://localhost` is not allowed, use HTTPS tunneling:
+
+#### Option 1: ngrok (Recommended)
+
+```bash
+# Install ngrok
+brew install ngrok  # macOS
+# or download from https://ngrok.com/download
+
+# Start your local callback server
+python scripts/cli/oauth_authorization_flow.py
+
+# In another terminal, create HTTPS tunnel
+ngrok http 8080
+
+# ngrok output will show:
+# Forwarding: https://abc123def456.ngrok.io -> http://localhost:8080
+```
+
+**Configuration**:
+1. Copy the HTTPS URL from ngrok (e.g., `https://abc123def456.ngrok.io`)
+2. Set `REDIRECT_URI = "https://abc123def456.ngrok.io/callback"`
+3. Register this URL in your OSM OAuth application settings
+4. Run your authorization flow
+
+**Note**: ngrok free tier generates a new URL each time. Paid plans allow custom domains.
+
+#### Option 2: localhost.run (Free Alternative)
+
+```bash
+# Create HTTPS tunnel to localhost:8080
+ssh -R 80:localhost:8080 localhost.run
+
+# Output will show your HTTPS URL
+# Register that URL + /callback as your redirect_uri
+```
+
+#### Option 3: Deploy to Cloud (Production)
+
+For production or persistent development:
+- **Heroku**: Free tier with automatic HTTPS
+- **Railway.app**: Easy deployment with HTTPS
+- **Your domain**: Use Let's Encrypt for free SSL certificates
+- **Vercel/Netlify**: For client-side OAuth flows
+
+### Production Deployment
+
+For production applications:
+1. Deploy your callback handler to a server with HTTPS
+2. Register your production URL: `https://yourdomain.com/oauth/callback`
+3. Ensure SSL certificate is valid and not self-signed
+4. Use environment variables for CLIENT_ID and CLIENT_SECRET
 
 ---
 
@@ -227,9 +295,12 @@ state = secrets.token_urlsafe(32)
 - Clear tokens on logout
 
 ### Redirect URI
-- Use HTTPS in production (HTTP only for localhost development)
-- Register all redirect URIs with OSM
-- Validate redirect_uri matches exactly
+- **MUST use HTTPS** - OSM requires all redirect URIs to start with `https://`
+- **No localhost/HTTP allowed** - Even for development, use HTTPS tunneling:
+  - **ngrok**: `ngrok http 8080` → Register `https://abc123.ngrok.io/callback`
+  - **localhost.run**: `ssh -R 80:localhost:8080 localhost.run`
+- Register all redirect URIs with OSM before use
+- Validate redirect_uri matches exactly (including trailing slashes)
 - Avoid open redirects
 
 ### Scopes
