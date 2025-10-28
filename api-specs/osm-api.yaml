@@ -2,10 +2,22 @@ openapi: 3.0.3
 info:
   title: Online Scout Manager (OSM) API
   description: |
-    API for managing scout sections, members, events, badges, invoices, and patrols in Online Scout Manager.
+    Comprehensive API for managing scout sections, members, events, badges, invoices, patrols, and more in Online Scout Manager.
+    
+    This specification includes core endpoints plus extended functionality for payment schemes, gift aid, accounting, facilities, programme planning, risk assessments, and dashboard operations.
     
     ## Authentication
-    This API uses OAuth 2.0 bearer token authentication. All endpoints require an access token obtained through the OSM OAuth flow.
+    This API uses OAuth 2.0 bearer token authentication. All endpoints require an access token obtained through one of two OAuth flows:
+    
+    ### 1. Client Credentials Flow (Machine-to-Machine)
+    Use this flow for automated systems or background processes where only one user account is needed. This flow does not require user interaction.
+    
+    **Use Case**: Automated scripts, cron jobs, server-to-server communication
+    
+    ### 2. Authorization Code Flow (User Login)
+    Use this flow when you need users to authenticate with their own OSM credentials. This opens the OSM login screen where users enter their username and password, then redirects back to your application with an authorization code.
+    
+    **Use Case**: Web applications, mobile apps, desktop applications where multiple users need to access their own data
     
     ## Rate Limiting
     The API implements rate limiting. Monitor response headers for rate limit information.
@@ -13,7 +25,7 @@ info:
     ## Base URL
     All API endpoints are relative to: `https://www.onlinescoutmanager.co.uk`
     
-  version: 1.0.0
+  version: 1.1.0
   contact:
     name: OSM API Client
     url: https://github.com/MMollart/osm
@@ -30,10 +42,30 @@ tags:
     description: Member management and custom data operations
   - name: Finance
     description: Invoice and payment operations
+  - name: Online Payments
+    description: Payment scheme management and member payment tracking
+  - name: Gift Aid
+    description: Gift aid eligibility and data management
+  - name: Accounting
+    description: Bank accounts, transactions, and financial reporting
   - name: Events
     description: Event management and attendee tracking
   - name: Badges
     description: Badge progress and records
+  - name: Facilities
+    description: Campsite and facility directory browsing
+  - name: Programme
+    description: Programme planning and activity management
+  - name: Kit Lists
+    description: Event kit list management
+  - name: Risk Assessments
+    description: Risk assessment creation and management
+  - name: Settings
+    description: Email delivery reports and subscription management
+  - name: Dashboard
+    description: Multi-section dashboard data
+  - name: Access
+    description: User access and permissions management
   - name: Patrols
     description: Patrol creation and member assignments
   - name: Authentication
@@ -67,11 +99,11 @@ paths:
                 section_id:
                   type: integer
                   description: Numeric OSM section identifier
-                  example: 75013
+                  example: 12345
                 term_id:
                   type: integer
                   description: OSM term ID
-                  example: 841318
+                  example: 67890
       responses:
         '200':
           description: Successful response with full member grid data
@@ -108,13 +140,13 @@ paths:
           required: true
           schema:
             type: integer
-          example: 75013
+          example: 12345
         - name: termid
           in: query
           required: true
           schema:
             type: integer
-          example: 841318
+          example: 67890
         - name: section
           in: query
           schema:
@@ -163,12 +195,12 @@ paths:
           required: true
           schema:
             type: integer
-          example: 75013
+          example: 12345
         - name: term_id
           in: query
           schema:
             type: integer
-          example: 841318
+          example: 67890
         - name: scout_id
           in: query
           schema:
@@ -204,7 +236,7 @@ paths:
           required: true
           schema:
             type: integer
-          example: 75013
+          example: 12345
       requestBody:
         required: true
         content:
@@ -223,7 +255,7 @@ paths:
                 associated_id:
                   type: string
                   description: Member ID
-                  example: "76482"
+                  example: "11111"
                 associated_type:
                   type: string
                   enum: [member]
@@ -282,13 +314,13 @@ paths:
           required: true
           schema:
             type: integer
-          example: 75013
+          example: 12345
         - name: termid
           in: query
           required: true
           schema:
             type: integer
-          example: 841318
+          example: 67890
         - name: is_dgrid
           in: query
           schema:
@@ -331,13 +363,13 @@ paths:
           required: true
           schema:
             type: integer
-          example: 75013
+          example: 12345
         - name: invoiceid
           in: query
           required: true
           schema:
             type: integer
-          example: 121472
+          example: 22222
       responses:
         '200':
           description: Invoice details
@@ -368,7 +400,7 @@ paths:
           required: true
           schema:
             type: integer
-          example: 75013
+          example: 12345
       requestBody:
         required: true
         content:
@@ -415,13 +447,13 @@ paths:
           required: true
           schema:
             type: integer
-          example: 75013
+          example: 12345
         - name: termid
           in: query
           required: true
           schema:
             type: integer
-          example: 841318
+          example: 67890
         - name: onlyArchived
           in: query
           schema:
@@ -454,7 +486,7 @@ paths:
           required: true
           schema:
             type: integer
-          example: 1532189
+          example: 55555
       responses:
         '200':
           description: Event details
@@ -480,7 +512,7 @@ paths:
           required: true
           schema:
             type: integer
-          example: 1532189
+          example: 55555
       responses:
         '200':
           description: Event summary
@@ -506,7 +538,7 @@ paths:
           required: true
           schema:
             type: integer
-          example: 1532189
+          example: 55555
       responses:
         '200':
           description: List of event attendees
@@ -546,7 +578,7 @@ paths:
           required: true
           schema:
             type: integer
-          example: 57818
+          example: 33333
         - name: type_id
           in: query
           required: true
@@ -567,7 +599,7 @@ paths:
           schema:
             type: integer
           description: Required for getBadgeRecords action
-          example: 864862
+          example: 44444
         - name: badge_id
           in: query
           schema:
@@ -657,13 +689,13 @@ paths:
           required: true
           schema:
             type: integer
-          example: 75013
+          example: 12345
         - name: termid
           in: query
           required: true
           schema:
             type: integer
-          example: 841318
+          example: 67890
         - name: include_no_patrol
           in: query
           schema:
@@ -716,12 +748,1514 @@ paths:
       security:
         - bearerAuth: [section:member:write, section:attendance:write]
 
+  # ========== ONLINE PAYMENTS ==========
+  
+  /ext/finances/onlinepayments/:
+    get:
+      tags:
+        - Online Payments
+      summary: Get payment schemes for a section
+      description: Retrieves all payment schemes configured for the specified section
+      operationId: getPaymentSchemes
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getSchemes]
+          example: getSchemes
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 75013
+      responses:
+        '200':
+          description: Successful response with payment schemes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  schemes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PaymentScheme'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+      security:
+        - bearerAuth: [section:finance:read]
+
+  /ext/finances/onlinepayments/schedule/:
+    get:
+      tags:
+        - Online Payments
+      summary: Get payment schedule for a scheme and term
+      description: Retrieves scheduled payments for a specific payment scheme, optionally filtered by term
+      operationId: getPaymentSchedule
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getPaymentSchedule]
+          example: getPaymentSchedule
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 75013
+        - name: scheme_id
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 12345
+        - name: term_id
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter by term (omit for all-time schedule)
+          example: 841318
+        - name: all
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [0, 1]
+          description: Set to 1 to retrieve all-time payments (ignores term_id)
+          example: 0
+      responses:
+        '200':
+          description: Successful response with payment schedule
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payments:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PaymentScheduleItem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:finance:read]
+
+  /ext/finances/onlinepayments/details/:
+    get:
+      tags:
+        - Online Payments
+      summary: Get detailed payment schedule information
+      description: Retrieves detailed schedule information including member payment history
+      operationId: getScheduleDetails
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getDetails]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: scheme_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: term_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response with schedule details
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:finance:read]
+
+  /ext/finances/onlinepayments/status/:
+    get:
+      tags:
+        - Online Payments
+      summary: Get member payment status
+      description: Retrieves payment status for all members in a scheme and term
+      operationId: getPaymentStatus
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getPaymentStatus]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 75013
+        - name: scheme_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: term_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: include_payload
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Include detailed payment data
+      responses:
+        '200':
+          description: Successful response with payment status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  members:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        member_id:
+                          type: integer
+                        payment_status:
+                          type: string
+                          enum: [paid, pending, overdue]
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:finance:read]
+
+  /ext/finances/onlinepayments/uninitiated/:
+    get:
+      tags:
+        - Online Payments
+      summary: Get members who haven't initiated payment
+      description: Retrieves list of members who haven't started the online payment process
+      operationId: getUninitiatedMembers
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getUninitiated]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: scheme_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: term_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response with uninitiated members
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:finance:read]
+
+  # ========== GIFT AID ==========
+
+  /ext/finances/giftaid/:
+    get:
+      tags:
+        - Gift Aid
+      summary: Get gift aid structure or grid data
+      description: Retrieves gift aid column structure or member gift aid data grid
+      operationId: getGiftAidData
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getStructure, getGrid]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: term_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: section
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [beavers, cubs, scouts, explorers]
+        - name: include_totals
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Include totals row (for getGrid action)
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    description: Structure response
+                    properties:
+                      columns:
+                        type: array
+                        items:
+                          type: object
+                  - type: object
+                    description: Grid response
+                    properties:
+                      members:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/GiftAidMember'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:finance:read]
+
+  # ========== ACCOUNTING ==========
+
+  /ext/finances/accounting/accounts/:
+    get:
+      tags:
+        - Accounting
+      summary: Get bank accounts for a section
+      description: Retrieves all bank accounts configured for the specified section
+      operationId: getBankAccounts
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getAccounts]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response with bank accounts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accounts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BankAccount'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:finance:read]
+
+  /ext/finances/accounting/transactions/:
+    get:
+      tags:
+        - Accounting
+      summary: Get bank account transactions
+      description: Retrieves paginated transaction history for a specific bank account
+      operationId: getBankTransactions
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getTransactions]
+        - name: account_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 100
+            maximum: 500
+        - name: expense_cardholder_id
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter by expense cardholder
+        - name: mode
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter mode
+      responses:
+        '200':
+          description: Successful response with transactions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transactions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BankTransaction'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      per_page:
+                        type: integer
+                      total:
+                        type: integer
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:finance:read]
+
+  /ext/finances/accounting/balances/:
+    get:
+      tags:
+        - Accounting
+      summary: Get bank account balances
+      description: Retrieves current balances for all section bank accounts
+      operationId: getBankAccountBalances
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getBalances]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: mode
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response with account balances
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:finance:read]
+
+  /ext/finances/accounting/expense-cards/:
+    get:
+      tags:
+        - Accounting
+      summary: Get expense card balances
+      description: Retrieves expense card balances for cardholders
+      operationId: getExpenseCardBalances
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getExpenseCards]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response with expense card data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:finance:read]
+
+  /ext/finances/accounting/year-summary/:
+    get:
+      tags:
+        - Accounting
+      summary: Get financial year summary
+      description: Retrieves financial summary data for all years in a section
+      operationId: getFinancialYearSummary
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getYearSummary]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response with financial year data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  years:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        year_id:
+                          type: integer
+                        name:
+                          type: string
+                        start_date:
+                          type: string
+                          format: date
+                        end_date:
+                          type: string
+                          format: date
+                        balance:
+                          type: number
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:finance:read]
+
+  /ext/finances/accounting/cashbook/:
+    get:
+      tags:
+        - Accounting
+      summary: Get financial year cashbook transactions
+      description: Retrieves cashbook transactions for a specific financial year
+      operationId: getFinancialYearCashbook
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getCashbook]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: year_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: mode
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response with cashbook data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:finance:read]
+
+  /ext/finances/accounting/annual-report/:
+    get:
+      tags:
+        - Accounting
+      summary: Get annual financial report
+      description: Retrieves comprehensive annual financial report for a year
+      operationId: getAnnualReport
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getAnnualReport]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: year_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response with annual report
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:finance:read]
+
+  /ext/finances/accounting/items/:
+    get:
+      tags:
+        - Accounting
+      summary: Get accounting items (categories)
+      description: Retrieves accounting item categories for financial transactions
+      operationId: getAccountingItems
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getItems]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response with accounting items
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:finance:read]
+
+  # ========== SETTINGS & EMAIL ==========
+
+  /ext/settings/emails/:
+    get:
+      tags:
+        - Settings
+      summary: Get email delivery reports
+      description: Retrieves email delivery statistics and reports for a section
+      operationId: getEmailDeliveryReport
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getDeliveryReport, getDeliveryRows]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: email_id
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Required for getDeliveryRows action
+        - name: generic_date
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Successful response with email delivery data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  emails:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:admin:read]
+
+  /ext/settings/subscriptions/:
+    get:
+      tags:
+        - Settings
+      summary: Get subscription status
+      description: Retrieves subscription information for section or user
+      operationId: getSubscriptions
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getSubscriptions]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: mode
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [section, user]
+      responses:
+        '200':
+          description: Successful response with subscription data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:admin:read]
+
+  # ========== BADGES (EXTENDED) ==========
+
+  /ext/badges/by-member/:
+    get:
+      tags:
+        - Badges
+      summary: Get all badges organized by member
+      description: Retrieves badge progress for all members, organized by member
+      operationId: getBadgesByMember
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getBadgesByMember]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: term_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: section
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [beavers, cubs, scouts, explorers]
+      responses:
+        '200':
+          description: Successful response with badge data by member
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:badge:read]
+
+  /ext/badges/due/:
+    get:
+      tags:
+        - Badges
+      summary: Get badges due for completion or award
+      description: Retrieves list of badges that are due for completion or awarding
+      operationId: getDueBadges
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getDueBadges]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: term_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: section
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [beavers, cubs, scouts, explorers]
+      responses:
+        '200':
+          description: Successful response with due badges
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:badge:read]
+
+  /ext/badges/stock/:
+    get:
+      tags:
+        - Badges
+      summary: Check badge inventory stock levels
+      description: Retrieves current badge stock levels for ordering purposes
+      operationId: getBadgeStock
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getBadgeStock]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: term_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: section
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: check_if_shared
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ["y", "n"]
+            default: "n"
+      responses:
+        '200':
+          description: Successful response with badge stock levels
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:badge:read]
+
+  # ========== FACILITIES ==========
+
+  /ext/facilities/types/:
+    get:
+      tags:
+        - Facilities
+      summary: Get facility types in camp directory
+      description: Retrieves available facility types for filtering campsites
+      operationId: getFacilityTypes
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getFacilityTypes]
+      responses:
+        '200':
+          description: Successful response with facility types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  types:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FacilityType'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: []
+
+  /ext/facilities/campsites/:
+    get:
+      tags:
+        - Facilities
+      summary: Browse campsite directory
+      description: Retrieves list of campsites from OSM camp directory
+      operationId: getCampsites
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getCampsites]
+        - name: mode
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [map, list]
+            default: list
+      responses:
+        '200':
+          description: Successful response with campsites
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: []
+
+  # ========== PROGRAMME ==========
+
+  /ext/programme/activities/:
+    get:
+      tags:
+        - Programme
+      summary: Search programme activity database
+      description: Searches available programme activities for planning meetings
+      operationId: searchActivities
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [search]
+        - name: section
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response with activities
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:programme:read]
+
+  /ext/programme/meetings/:
+    get:
+      tags:
+        - Programme
+      summary: Get programme meetings summary
+      description: Retrieves programme meeting summary for a term
+      operationId: getProgrammeSummary
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getSummary]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: term_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response with programme summary
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:programme:read]
+
+    post:
+      tags:
+        - Programme
+      summary: Add a new programme meeting
+      description: Creates a new programme meeting for a section
+      operationId: addProgrammeMeeting
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - section_id
+                - start_date
+                - title
+              properties:
+                section_id:
+                  type: integer
+                start_date:
+                  type: string
+                  format: date
+                title:
+                  type: string
+                start_time:
+                  type: string
+                  format: time
+                end_time:
+                  type: string
+                  format: time
+                request_guid:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Meeting created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  meeting_id:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:programme:write]
+
+    put:
+      tags:
+        - Programme
+      summary: Update programme meeting details
+      description: Updates an existing programme meeting with new activities or times
+      operationId: updateProgrammeMeeting
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - section_id
+                - evening_id
+                - parts
+              properties:
+                section_id:
+                  type: integer
+                evening_id:
+                  type: integer
+                parts:
+                  type: string
+                  description: JSON string of meeting parts
+      responses:
+        '200':
+          description: Meeting updated successfully
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:programme:write]
+
+  # ========== EVENTS (EXTENDED) ==========
+
+  /ext/events/:
+    post:
+      tags:
+        - Events
+      summary: Create a new event
+      description: Creates a new event for a section with full configuration
+      operationId: addEvent
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - section_id
+                - name
+                - start_date
+              properties:
+                section_id:
+                  type: integer
+                name:
+                  type: string
+                start_date:
+                  type: string
+                  format: date
+                start_time:
+                  type: string
+                  format: time
+                end_date:
+                  type: string
+                  format: date
+                end_time:
+                  type: string
+                  format: time
+                cost:
+                  type: number
+                location:
+                  type: string
+                notes:
+                  type: string
+                public:
+                  type: string
+                  enum: ["true", "false"]
+                non_members:
+                  type: string
+                  enum: ["true", "false"]
+                attendee_limit:
+                  type: integer
+                confirmation_date:
+                  type: string
+                  format: date
+      responses:
+        '200':
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  event_id:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:event:write]
+
+  /ext/events/{event_id}/:
+    get:
+      tags:
+        - Events
+      summary: Get basic event details
+      description: Retrieves basic details for an event (alternative to /v3/events/event/{eventId}/basic_details)
+      operationId: getEventBasicDetails
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getDetails]
+      responses:
+        '200':
+          description: Event details retrieved
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:event:read]
+
+    delete:
+      tags:
+        - Events
+      summary: Delete an event
+      description: Removes an event from the section
+      operationId: deleteEvent
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - section_id
+              properties:
+                section_id:
+                  type: integer
+      responses:
+        '200':
+          description: Event deleted successfully
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:event:write]
+
+  # ========== KIT LISTS ==========
+
+  /ext/events/kit-lists/:
+    get:
+      tags:
+        - Kit Lists
+      summary: Get kit lists for section events
+      description: Retrieves all kit lists configured for section events
+      operationId: getKitLists
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getKitLists]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response with kit lists
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:event:read]
+
+    post:
+      tags:
+        - Kit Lists
+      summary: Add item to kit list
+      description: Adds a new item to an event kit list collection
+      operationId: addKitListItem
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - section_id
+                - collection_id
+                - name
+                - items
+              properties:
+                section_id:
+                  type: integer
+                collection_id:
+                  type: integer
+                name:
+                  type: string
+                instructions:
+                  type: string
+                items:
+                  type: string
+                  description: JSON array of item objects with item_id and quantity
+      responses:
+        '200':
+          description: Item added successfully
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:event:write]
+
+  # ========== RISK ASSESSMENTS ==========
+
+  /ext/events/risk-assessments/:
+    get:
+      tags:
+        - Risk Assessments
+      summary: Get risk assessment for meeting or event
+      description: Retrieves risk assessment data for a specific meeting or event
+      operationId: getRiskAssessment
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getRiskAssessment]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: assessment_type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [meeting, event]
+        - name: associated_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response with risk assessment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RiskAssessment'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:programme:read, section:event:read]
+
+    post:
+      tags:
+        - Risk Assessments
+      summary: Add or update risk assessment item
+      description: Adds a new risk or updates an existing risk in an assessment
+      operationId: addRiskAssessmentItem
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - section_id
+                - associated_id
+                - assessment_type
+                - hazard
+                - controls
+              properties:
+                section_id:
+                  type: integer
+                associated_id:
+                  type: integer
+                assessment_type:
+                  type: string
+                  enum: [meeting, event]
+                hazard:
+                  type: string
+                category:
+                  type: string
+                who:
+                  type: string
+                controls:
+                  type: string
+                check:
+                  type: string
+                item_id:
+                  type: integer
+                  description: 0 for new item, existing ID to update
+      responses:
+        '200':
+          description: Risk item added or updated successfully
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:programme:write, section:event:write]
+
+  /ext/events/risk-categories/:
+    get:
+      tags:
+        - Risk Assessments
+      summary: Get risk assessment categories
+      description: Retrieves available risk categories for assessments
+      operationId: getRiskCategories
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getCategories]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response with risk categories
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:programme:read, section:event:read]
+
+  # ========== DASHBOARD ==========
+
+  /ext/dashboard/:
+    get:
+      tags:
+        - Dashboard
+      summary: Get multi-section group dashboard
+      description: Retrieves dashboard data for multiple sections simultaneously
+      operationId: getGroupDashboard
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getGroupDashboard]
+        - name: sections_and_types
+          in: query
+          required: true
+          schema:
+            type: string
+          description: JSON object mapping section IDs to data types
+          example: '{"75013":"members","75014":"events"}'
+        - name: use_v2
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Successful response with dashboard data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: []
+
+  # ========== ACCESS ==========
+
+  /ext/access/leaders/:
+    get:
+      tags:
+        - Access
+      summary: Get users with leader access
+      description: Retrieves list of users who have leader-level access to a section
+      operationId: getLeaderAccess
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getLeaders]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: card_mode
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Successful response with user access list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserAccess'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:admin:read]
+
+  /oauth/authorize:
+    get:
+      tags:
+        - Authentication
+      summary: Initiate OAuth2 authorization code flow
+      description: |
+        Redirect users to this endpoint to initiate the OAuth2 authorization code flow. 
+        Users will see the OSM login screen where they enter their credentials.
+        After successful authentication, OSM redirects back to your application with an authorization code.
+        
+        **Flow Steps:**
+        1. Redirect user to this endpoint with required parameters
+        2. User logs in with their OSM credentials
+        3. User grants permissions to your application
+        4. OSM redirects to your redirect_uri with an authorization code
+        5. Exchange the code for an access token using POST /oauth/token
+        
+        **Important**: This endpoint returns an HTML login page, not JSON.
+      operationId: authorizeUser
+      parameters:
+        - name: response_type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [code]
+          description: Must be "code" for authorization code flow
+        - name: client_id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Your application's client ID
+          example: your_client_id
+        - name: redirect_uri
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uri
+          description: URL to redirect to after authorization (must be registered with your app)
+          example: https://your-app.com/oauth/callback
+        - name: scope
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Space-separated list of OAuth scopes
+          example: section:member:read section:finance:read
+        - name: state
+          in: query
+          schema:
+            type: string
+          description: Optional state parameter for CSRF protection (recommended)
+          example: random_state_string_123
+      responses:
+        '200':
+          description: HTML login page displayed to user
+          content:
+            text/html:
+              schema:
+                type: string
+        '302':
+          description: Redirect to redirect_uri with authorization code or error
+          headers:
+            Location:
+              schema:
+                type: string
+              description: |
+                Redirect URL with parameters:
+                - Success: ?code=AUTH_CODE&state=STATE_VALUE
+                - Error: ?error=ERROR_CODE&error_description=DESCRIPTION&state=STATE_VALUE
+      security: []
+
   /oauth/token:
     post:
       tags:
         - Authentication
       summary: Get OAuth access token
-      description: Obtain an OAuth 2.0 access token using client credentials or refresh token.
+      description: |
+        Obtain an OAuth 2.0 access token using one of three grant types:
+        
+        **1. Client Credentials** (Machine-to-Machine):
+        - Use for automated systems without user interaction
+        - Requires client_id and client_secret only
+        
+        **2. Authorization Code** (User Login):
+        - Exchange authorization code from /oauth/authorize for tokens
+        - Requires code from redirect, client_id, client_secret, and redirect_uri
+        
+        **3. Refresh Token**:
+        - Get a new access token using a refresh token
+        - Extends the session without re-authentication
       operationId: getToken
       requestBody:
         required: true
@@ -730,7 +2264,37 @@ paths:
             schema:
               oneOf:
                 - $ref: '#/components/schemas/ClientCredentialsRequest'
+                - $ref: '#/components/schemas/AuthorizationCodeRequest'
                 - $ref: '#/components/schemas/RefreshTokenRequest'
+              discriminator:
+                propertyName: grant_type
+                mapping:
+                  client_credentials: '#/components/schemas/ClientCredentialsRequest'
+                  authorization_code: '#/components/schemas/AuthorizationCodeRequest'
+                  refresh_token: '#/components/schemas/RefreshTokenRequest'
+            examples:
+              clientCredentials:
+                summary: Client Credentials Flow
+                value:
+                  grant_type: client_credentials
+                  client_id: your_client_id
+                  client_secret: your_client_secret
+                  scope: section:member:read section:finance:read
+              authorizationCode:
+                summary: Authorization Code Flow
+                value:
+                  grant_type: authorization_code
+                  code: AUTH_CODE_FROM_REDIRECT
+                  client_id: your_client_id
+                  client_secret: your_client_secret
+                  redirect_uri: https://your-app.com/oauth/callback
+              refreshToken:
+                summary: Refresh Token
+                value:
+                  grant_type: refresh_token
+                  refresh_token: EXISTING_REFRESH_TOKEN
+                  client_id: your_client_id
+                  client_secret: your_client_secret
       responses:
         '200':
           description: Access token granted
@@ -739,7 +2303,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenResponse'
         '401':
-          description: Invalid credentials
+          description: Invalid credentials or authorization code
       security: []
 
 components:
@@ -749,6 +2313,38 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: OAuth 2.0 bearer token obtained from /oauth/token endpoint
+    
+    oauth2:
+      type: oauth2
+      description: |
+        OAuth 2.0 flows for authentication. Choose the appropriate flow based on your use case:
+        - **Client Credentials**: For server-to-server/machine-to-machine authentication
+        - **Authorization Code**: For user-facing applications requiring OSM login
+      flows:
+        clientCredentials:
+          tokenUrl: https://www.onlinescoutmanager.co.uk/oauth/token
+          scopes:
+            section:member:read: Read member information
+            section:member:write: Update member data
+            section:finance:read: View financial data
+            section:finance:write: Manage invoices and payments
+            section:event:read: Access event information
+            section:badge:read: View badge records
+            section:admin:write: Administrative operations
+            section:attendance:write: Manage attendance and patrols
+        
+        authorizationCode:
+          authorizationUrl: https://www.onlinescoutmanager.co.uk/oauth/authorize
+          tokenUrl: https://www.onlinescoutmanager.co.uk/oauth/token
+          scopes:
+            section:member:read: Read member information
+            section:member:write: Update member data
+            section:finance:read: View financial data
+            section:finance:write: Manage invoices and payments
+            section:event:read: Access event information
+            section:badge:read: View badge records
+            section:admin:write: Administrative operations
+            section:attendance:write: Manage attendance and patrols
 
   schemas:
     MembersGridResponse:
@@ -791,13 +2387,13 @@ components:
             properties:
               scoutid:
                 type: integer
-                example: 76482
+                example: 11111
               firstname:
                 type: string
-                example: John
+                example: Member
               lastname:
                 type: string
-                example: Doe
+                example: A
               dob:
                 type: string
                 format: date
@@ -840,10 +2436,10 @@ components:
             properties:
               invoiceid:
                 type: integer
-                example: 121472
+                example: 22222
               name:
                 type: string
-                example: "John Doe (WSJ01)"
+                example: "Member Name (REF001)"
               entrydate:
                 type: string
                 format: date
@@ -896,7 +2492,7 @@ components:
       properties:
         name:
           type: string
-          example: "John Doe (WSJ01)"
+          example: "Member Name (REF001)"
         extra:
           type: string
           description: Additional notes
@@ -930,10 +2526,10 @@ components:
           example: "2025-10-27"
         section_id:
           type: string
-          example: "75013"
+          example: "12345"
         invoice_id:
           type: string
-          example: "121472"
+          example: "22222"
         context:
           type: string
           enum: [invoice]
@@ -959,7 +2555,7 @@ components:
             properties:
               eventid:
                 type: integer
-                example: 1532189
+                example: 55555
               name:
                 type: string
                 example: "Summer Camp 2025"
@@ -1016,10 +2612,10 @@ components:
         properties:
           member_id:
             type: integer
-            example: 76482
+            example: 11111
           full_name:
             type: string
-            example: "John Doe"
+            example: "Scout Member"
           photo_guid:
             type: string
           patrol_id:
@@ -1076,13 +2672,13 @@ components:
       properties:
         sectionid:
           type: integer
-          example: 75013
+          example: 12345
         name:
           type: string
           example: "Dragon Patrol"
         termid:
           type: integer
-          example: 841318
+          example: 67890
 
     DeletePatrolRequest:
       type: object
@@ -1092,7 +2688,7 @@ components:
       properties:
         sectionid:
           type: integer
-          example: 75013
+          example: 12345
         patrolid:
           type: integer
           example: 12345
@@ -1129,14 +2725,142 @@ components:
       properties:
         section_id:
           type: integer
-          example: 75013
+          example: 12345
         member_id:
           type: integer
-          example: 76482
+          example: 11111
         patrol_id:
           type: integer
           example: 12345
           description: Patrol ID to assign, or omit/null to remove from patrol
+
+    PaymentScheme:
+      type: object
+      properties:
+        scheme_id:
+          type: integer
+          example: 12345
+        name:
+          type: string
+          example: "Subscription Payments 2024"
+        status:
+          type: string
+          enum: [active, inactive]
+          example: "active"
+
+    PaymentScheduleItem:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2024-10-27"
+        amount:
+          type: number
+          format: float
+          example: 50.00
+        description:
+          type: string
+          example: "Monthly subscription"
+
+    GiftAidMember:
+      type: object
+      properties:
+        member_id:
+          type: integer
+          example: 12345
+        name:
+          type: string
+          example: "John Doe"
+        status:
+          type: string
+          enum: [eligible, ineligible, pending]
+          example: "eligible"
+
+    BankAccount:
+      type: object
+      properties:
+        account_id:
+          type: integer
+          example: 789
+        name:
+          type: string
+          example: "Main Account"
+        type:
+          type: string
+          enum: [current, savings, expense_card]
+          example: "current"
+        balance:
+          type: number
+          format: float
+          example: 1250.50
+
+    BankTransaction:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2024-10-27"
+        description:
+          type: string
+          example: "Bank transfer from member"
+        amount:
+          type: number
+          format: float
+          example: 100.00
+        balance:
+          type: number
+          format: float
+          example: 1350.50
+
+    FacilityType:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Indoor Activity Centre"
+
+    RiskAssessment:
+      type: object
+      properties:
+        assessment_id:
+          type: integer
+          example: 456
+        associated_id:
+          type: integer
+          example: 1532189
+        assessment_type:
+          type: string
+          enum: [meeting, event]
+          example: "event"
+        hazards:
+          type: array
+          items:
+            type: object
+            properties:
+              hazard:
+                type: string
+                example: "Slippery surfaces"
+              controls:
+                type: string
+                example: "Non-slip mats provided"
+
+    UserAccess:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          example: 98765
+        name:
+          type: string
+          example: "Jane Smith"
+        role:
+          type: string
+          example: "Section Leader"
 
     ClientCredentialsRequest:
       type: object
@@ -1148,13 +2872,46 @@ components:
         grant_type:
           type: string
           enum: [client_credentials]
+          description: Must be "client_credentials"
         client_id:
           type: string
+          description: Your application's client ID
         client_secret:
           type: string
+          description: Your application's client secret
         scope:
           type: string
+          description: Space-separated list of OAuth scopes
           example: "section:member:read section:finance:read"
+
+    AuthorizationCodeRequest:
+      type: object
+      required:
+        - grant_type
+        - code
+        - client_id
+        - client_secret
+        - redirect_uri
+      properties:
+        grant_type:
+          type: string
+          enum: [authorization_code]
+          description: Must be "authorization_code"
+        code:
+          type: string
+          description: Authorization code received from /oauth/authorize redirect
+          example: AUTH_CODE_FROM_CALLBACK
+        client_id:
+          type: string
+          description: Your application's client ID
+        client_secret:
+          type: string
+          description: Your application's client secret
+        redirect_uri:
+          type: string
+          format: uri
+          description: Must match the redirect_uri used in /oauth/authorize
+          example: https://your-app.com/oauth/callback
 
     RefreshTokenRequest:
       type: object
