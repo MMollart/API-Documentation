@@ -5,7 +5,17 @@ info:
     API for managing scout sections, members, events, badges, invoices, and patrols in Online Scout Manager.
     
     ## Authentication
-    This API uses OAuth 2.0 bearer token authentication. All endpoints require an access token obtained through the OSM OAuth flow.
+    This API uses OAuth 2.0 bearer token authentication. All endpoints require an access token obtained through one of two OAuth flows:
+    
+    ### 1. Client Credentials Flow (Machine-to-Machine)
+    Use this flow for automated systems or background processes where only one user account is needed. This flow does not require user interaction.
+    
+    **Use Case**: Automated scripts, cron jobs, server-to-server communication
+    
+    ### 2. Authorization Code Flow (User Login)
+    Use this flow when you need users to authenticate with their own OSM credentials. This opens the OSM login screen where users enter their username and password, then redirects back to your application with an authorization code.
+    
+    **Use Case**: Web applications, mobile apps, desktop applications where multiple users need to access their own data
     
     ## Rate Limiting
     The API implements rate limiting. Monitor response headers for rate limit information.
@@ -67,11 +77,11 @@ paths:
                 section_id:
                   type: integer
                   description: Numeric OSM section identifier
-                  example: 75013
+                  example: 12345
                 term_id:
                   type: integer
                   description: OSM term ID
-                  example: 841318
+                  example: 67890
       responses:
         '200':
           description: Successful response with full member grid data
@@ -108,13 +118,13 @@ paths:
           required: true
           schema:
             type: integer
-          example: 75013
+          example: 12345
         - name: termid
           in: query
           required: true
           schema:
             type: integer
-          example: 841318
+          example: 67890
         - name: section
           in: query
           schema:
@@ -163,12 +173,12 @@ paths:
           required: true
           schema:
             type: integer
-          example: 75013
+          example: 12345
         - name: term_id
           in: query
           schema:
             type: integer
-          example: 841318
+          example: 67890
         - name: scout_id
           in: query
           schema:
@@ -204,7 +214,7 @@ paths:
           required: true
           schema:
             type: integer
-          example: 75013
+          example: 12345
       requestBody:
         required: true
         content:
@@ -223,7 +233,7 @@ paths:
                 associated_id:
                   type: string
                   description: Member ID
-                  example: "76482"
+                  example: "11111"
                 associated_type:
                   type: string
                   enum: [member]
@@ -282,13 +292,13 @@ paths:
           required: true
           schema:
             type: integer
-          example: 75013
+          example: 12345
         - name: termid
           in: query
           required: true
           schema:
             type: integer
-          example: 841318
+          example: 67890
         - name: is_dgrid
           in: query
           schema:
@@ -331,13 +341,13 @@ paths:
           required: true
           schema:
             type: integer
-          example: 75013
+          example: 12345
         - name: invoiceid
           in: query
           required: true
           schema:
             type: integer
-          example: 121472
+          example: 22222
       responses:
         '200':
           description: Invoice details
@@ -368,7 +378,7 @@ paths:
           required: true
           schema:
             type: integer
-          example: 75013
+          example: 12345
       requestBody:
         required: true
         content:
@@ -415,13 +425,13 @@ paths:
           required: true
           schema:
             type: integer
-          example: 75013
+          example: 12345
         - name: termid
           in: query
           required: true
           schema:
             type: integer
-          example: 841318
+          example: 67890
         - name: onlyArchived
           in: query
           schema:
@@ -454,7 +464,7 @@ paths:
           required: true
           schema:
             type: integer
-          example: 1532189
+          example: 55555
       responses:
         '200':
           description: Event details
@@ -480,7 +490,7 @@ paths:
           required: true
           schema:
             type: integer
-          example: 1532189
+          example: 55555
       responses:
         '200':
           description: Event summary
@@ -506,7 +516,7 @@ paths:
           required: true
           schema:
             type: integer
-          example: 1532189
+          example: 55555
       responses:
         '200':
           description: List of event attendees
@@ -546,7 +556,7 @@ paths:
           required: true
           schema:
             type: integer
-          example: 57818
+          example: 33333
         - name: type_id
           in: query
           required: true
@@ -567,7 +577,7 @@ paths:
           schema:
             type: integer
           description: Required for getBadgeRecords action
-          example: 864862
+          example: 44444
         - name: badge_id
           in: query
           schema:
@@ -657,13 +667,13 @@ paths:
           required: true
           schema:
             type: integer
-          example: 75013
+          example: 12345
         - name: termid
           in: query
           required: true
           schema:
             type: integer
-          example: 841318
+          example: 67890
         - name: include_no_patrol
           in: query
           schema:
@@ -716,12 +726,99 @@ paths:
       security:
         - bearerAuth: [section:member:write, section:attendance:write]
 
+  /oauth/authorize:
+    get:
+      tags:
+        - Authentication
+      summary: Initiate OAuth2 authorization code flow
+      description: |
+        Redirect users to this endpoint to initiate the OAuth2 authorization code flow. 
+        Users will see the OSM login screen where they enter their credentials.
+        After successful authentication, OSM redirects back to your application with an authorization code.
+        
+        **Flow Steps:**
+        1. Redirect user to this endpoint with required parameters
+        2. User logs in with their OSM credentials
+        3. User grants permissions to your application
+        4. OSM redirects to your redirect_uri with an authorization code
+        5. Exchange the code for an access token using POST /oauth/token
+        
+        **Important**: This endpoint returns an HTML login page, not JSON.
+      operationId: authorizeUser
+      parameters:
+        - name: response_type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [code]
+          description: Must be "code" for authorization code flow
+        - name: client_id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Your application's client ID
+          example: your_client_id
+        - name: redirect_uri
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uri
+          description: URL to redirect to after authorization (must be registered with your app)
+          example: https://your-app.com/oauth/callback
+        - name: scope
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Space-separated list of OAuth scopes
+          example: section:member:read section:finance:read
+        - name: state
+          in: query
+          schema:
+            type: string
+          description: Optional state parameter for CSRF protection (recommended)
+          example: random_state_string_123
+      responses:
+        '200':
+          description: HTML login page displayed to user
+          content:
+            text/html:
+              schema:
+                type: string
+        '302':
+          description: Redirect to redirect_uri with authorization code or error
+          headers:
+            Location:
+              schema:
+                type: string
+              description: |
+                Redirect URL with parameters:
+                - Success: ?code=AUTH_CODE&state=STATE_VALUE
+                - Error: ?error=ERROR_CODE&error_description=DESCRIPTION&state=STATE_VALUE
+      security: []
+
   /oauth/token:
     post:
       tags:
         - Authentication
       summary: Get OAuth access token
-      description: Obtain an OAuth 2.0 access token using client credentials or refresh token.
+      description: |
+        Obtain an OAuth 2.0 access token using one of three grant types:
+        
+        **1. Client Credentials** (Machine-to-Machine):
+        - Use for automated systems without user interaction
+        - Requires client_id and client_secret only
+        
+        **2. Authorization Code** (User Login):
+        - Exchange authorization code from /oauth/authorize for tokens
+        - Requires code from redirect, client_id, client_secret, and redirect_uri
+        
+        **3. Refresh Token**:
+        - Get a new access token using a refresh token
+        - Extends the session without re-authentication
       operationId: getToken
       requestBody:
         required: true
@@ -730,7 +827,37 @@ paths:
             schema:
               oneOf:
                 - $ref: '#/components/schemas/ClientCredentialsRequest'
+                - $ref: '#/components/schemas/AuthorizationCodeRequest'
                 - $ref: '#/components/schemas/RefreshTokenRequest'
+              discriminator:
+                propertyName: grant_type
+                mapping:
+                  client_credentials: '#/components/schemas/ClientCredentialsRequest'
+                  authorization_code: '#/components/schemas/AuthorizationCodeRequest'
+                  refresh_token: '#/components/schemas/RefreshTokenRequest'
+            examples:
+              clientCredentials:
+                summary: Client Credentials Flow
+                value:
+                  grant_type: client_credentials
+                  client_id: your_client_id
+                  client_secret: your_client_secret
+                  scope: section:member:read section:finance:read
+              authorizationCode:
+                summary: Authorization Code Flow
+                value:
+                  grant_type: authorization_code
+                  code: AUTH_CODE_FROM_REDIRECT
+                  client_id: your_client_id
+                  client_secret: your_client_secret
+                  redirect_uri: https://your-app.com/oauth/callback
+              refreshToken:
+                summary: Refresh Token
+                value:
+                  grant_type: refresh_token
+                  refresh_token: EXISTING_REFRESH_TOKEN
+                  client_id: your_client_id
+                  client_secret: your_client_secret
       responses:
         '200':
           description: Access token granted
@@ -739,7 +866,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenResponse'
         '401':
-          description: Invalid credentials
+          description: Invalid credentials or authorization code
       security: []
 
 components:
@@ -749,6 +876,38 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: OAuth 2.0 bearer token obtained from /oauth/token endpoint
+    
+    oauth2:
+      type: oauth2
+      description: |
+        OAuth 2.0 flows for authentication. Choose the appropriate flow based on your use case:
+        - **Client Credentials**: For server-to-server/machine-to-machine authentication
+        - **Authorization Code**: For user-facing applications requiring OSM login
+      flows:
+        clientCredentials:
+          tokenUrl: https://www.onlinescoutmanager.co.uk/oauth/token
+          scopes:
+            section:member:read: Read member information
+            section:member:write: Update member data
+            section:finance:read: View financial data
+            section:finance:write: Manage invoices and payments
+            section:event:read: Access event information
+            section:badge:read: View badge records
+            section:admin:write: Administrative operations
+            section:attendance:write: Manage attendance and patrols
+        
+        authorizationCode:
+          authorizationUrl: https://www.onlinescoutmanager.co.uk/oauth/authorize
+          tokenUrl: https://www.onlinescoutmanager.co.uk/oauth/token
+          scopes:
+            section:member:read: Read member information
+            section:member:write: Update member data
+            section:finance:read: View financial data
+            section:finance:write: Manage invoices and payments
+            section:event:read: Access event information
+            section:badge:read: View badge records
+            section:admin:write: Administrative operations
+            section:attendance:write: Manage attendance and patrols
 
   schemas:
     MembersGridResponse:
@@ -791,13 +950,13 @@ components:
             properties:
               scoutid:
                 type: integer
-                example: 76482
+                example: 11111
               firstname:
                 type: string
-                example: John
+                example: Member
               lastname:
                 type: string
-                example: Doe
+                example: A
               dob:
                 type: string
                 format: date
@@ -840,10 +999,10 @@ components:
             properties:
               invoiceid:
                 type: integer
-                example: 121472
+                example: 22222
               name:
                 type: string
-                example: "John Doe (WSJ01)"
+                example: "Member Name (REF001)"
               entrydate:
                 type: string
                 format: date
@@ -896,7 +1055,7 @@ components:
       properties:
         name:
           type: string
-          example: "John Doe (WSJ01)"
+          example: "Member Name (REF001)"
         extra:
           type: string
           description: Additional notes
@@ -930,10 +1089,10 @@ components:
           example: "2025-10-27"
         section_id:
           type: string
-          example: "75013"
+          example: "12345"
         invoice_id:
           type: string
-          example: "121472"
+          example: "22222"
         context:
           type: string
           enum: [invoice]
@@ -959,7 +1118,7 @@ components:
             properties:
               eventid:
                 type: integer
-                example: 1532189
+                example: 55555
               name:
                 type: string
                 example: "Summer Camp 2025"
@@ -1016,10 +1175,10 @@ components:
         properties:
           member_id:
             type: integer
-            example: 76482
+            example: 11111
           full_name:
             type: string
-            example: "John Doe"
+            example: "Scout Member"
           photo_guid:
             type: string
           patrol_id:
@@ -1076,13 +1235,13 @@ components:
       properties:
         sectionid:
           type: integer
-          example: 75013
+          example: 12345
         name:
           type: string
           example: "Dragon Patrol"
         termid:
           type: integer
-          example: 841318
+          example: 67890
 
     DeletePatrolRequest:
       type: object
@@ -1092,7 +1251,7 @@ components:
       properties:
         sectionid:
           type: integer
-          example: 75013
+          example: 12345
         patrolid:
           type: integer
           example: 12345
@@ -1129,10 +1288,10 @@ components:
       properties:
         section_id:
           type: integer
-          example: 75013
+          example: 12345
         member_id:
           type: integer
-          example: 76482
+          example: 11111
         patrol_id:
           type: integer
           example: 12345
@@ -1148,13 +1307,46 @@ components:
         grant_type:
           type: string
           enum: [client_credentials]
+          description: Must be "client_credentials"
         client_id:
           type: string
+          description: Your application's client ID
         client_secret:
           type: string
+          description: Your application's client secret
         scope:
           type: string
+          description: Space-separated list of OAuth scopes
           example: "section:member:read section:finance:read"
+
+    AuthorizationCodeRequest:
+      type: object
+      required:
+        - grant_type
+        - code
+        - client_id
+        - client_secret
+        - redirect_uri
+      properties:
+        grant_type:
+          type: string
+          enum: [authorization_code]
+          description: Must be "authorization_code"
+        code:
+          type: string
+          description: Authorization code received from /oauth/authorize redirect
+          example: AUTH_CODE_FROM_CALLBACK
+        client_id:
+          type: string
+          description: Your application's client ID
+        client_secret:
+          type: string
+          description: Your application's client secret
+        redirect_uri:
+          type: string
+          format: uri
+          description: Must match the redirect_uri used in /oauth/authorize
+          example: https://your-app.com/oauth/callback
 
     RefreshTokenRequest:
       type: object
