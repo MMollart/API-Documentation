@@ -1,0 +1,33 @@
+# Jekyll configuration for GitHub Pages
+theme: jekyll-theme-cayman
+title: API Documentation
+description: Comprehensive API documentation repository for Online Scout Manager and other projects
+
+# GitHub repository information
+repository: MMollart/API-Documentation
+
+# Exclude from processing
+exclude:
+  - .gitignore
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+
+# Markdown settings
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# Plugins
+plugins:
+  - jekyll-relative-links
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# Relative links settings
+relative_links:
+  enabled: true
+  collections: false

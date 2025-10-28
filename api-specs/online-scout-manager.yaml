@@ -1,0 +1,1229 @@
+openapi: 3.0.3
+info:
+  title: Online Scout Manager (OSM) API
+  description: |
+    API for managing scout sections, members, events, badges, invoices, and patrols in Online Scout Manager.
+    
+    ## Authentication
+    This API uses OAuth 2.0 bearer token authentication. All endpoints require an access token obtained through the OSM OAuth flow.
+    
+    ## Rate Limiting
+    The API implements rate limiting. Monitor response headers for rate limit information.
+    
+    ## Base URL
+    All API endpoints are relative to: `https://www.onlinescoutmanager.co.uk`
+    
+  version: 1.0.0
+  contact:
+    name: OSM API Client
+    url: https://github.com/MMollart/osm
+
+servers:
+  - url: https://www.onlinescoutmanager.co.uk
+    description: Production OSM API server
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Members
+    description: Member management and custom data operations
+  - name: Finance
+    description: Invoice and payment operations
+  - name: Events
+    description: Event management and attendee tracking
+  - name: Badges
+    description: Badge progress and records
+  - name: Patrols
+    description: Patrol creation and member assignments
+  - name: Authentication
+    description: OAuth token operations
+
+paths:
+  /ext/members/contact/grid/:
+    post:
+      tags:
+        - Members
+      summary: Get members grid data
+      description: Retrieve all member data for a section and term using the efficient grid API endpoint. This is the most efficient endpoint for bulk member data retrieval.
+      operationId: getMembersGrid
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getMembers]
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - section_id
+                - term_id
+              properties:
+                section_id:
+                  type: integer
+                  description: Numeric OSM section identifier
+                  example: 75013
+                term_id:
+                  type: integer
+                  description: OSM term ID
+                  example: 841318
+      responses:
+        '200':
+          description: Successful response with full member grid data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MembersGridResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+      security:
+        - bearerAuth: [section:member:read]
+
+  /ext/members/contact/:
+    get:
+      tags:
+        - Members
+      summary: Get list of members
+      description: Retrieve a list of members for a given section and term, or a specific member by ID.
+      operationId: getMembers
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getListOfMembers, getIndividual]
+          description: API action - getListOfMembers for all members, getIndividual for specific member
+        - name: sectionid
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 75013
+        - name: termid
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 841318
+        - name: section
+          in: query
+          schema:
+            type: string
+            enum: [beavers, cubs, scouts, explorers]
+          description: Section type slug
+        - name: scoutid
+          in: query
+          schema:
+            type: integer
+          description: Specific member ID (only for action=getIndividual)
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [dob, firstname, lastname]
+            default: dob
+      responses:
+        '200':
+          description: List of members or single member data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MembersResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:member:read]
+
+  /ext/customdata/:
+    get:
+      tags:
+        - Members
+      summary: Get custom data for all members
+      description: Retrieve custom data fields for all members in a section/term or a specific member.
+      operationId: getCustomData
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getCustomData]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 75013
+        - name: term_id
+          in: query
+          schema:
+            type: integer
+          example: 841318
+        - name: scout_id
+          in: query
+          schema:
+            type: integer
+          description: Specific member ID for individual data retrieval
+      responses:
+        '200':
+          description: Custom data response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomDataResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:member:read]
+
+    post:
+      tags:
+        - Members
+      summary: Update custom member data
+      description: Update a custom data field value for a specific member.
+      operationId: updateMemberData
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [updateColumn]
+        - name: section_id
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 75013
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - associated_id
+                - column_id
+                - value
+              properties:
+                service:
+                  type: string
+                  enum: [desktop]
+                  default: desktop
+                associated_id:
+                  type: string
+                  description: Member ID
+                  example: "76482"
+                associated_type:
+                  type: string
+                  enum: [member]
+                  default: member
+                value:
+                  type: string
+                  description: New value to set
+                  example: "730.99"
+                column_id:
+                  type: string
+                  description: Custom data column ID
+                  example: "45247"
+                group_id:
+                  type: string
+                  description: Custom data group ID
+                  default: "5"
+                  example: "5"
+                context:
+                  type: string
+                  enum: [members]
+                  default: members
+      responses:
+        '200':
+          description: Update successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:member:write, section:attendance:write]
+
+  /ext/finances/invoices/summary/:
+    get:
+      tags:
+        - Finance
+      summary: Get invoice summary
+      description: Retrieve invoice summary for a section and term with optional archived invoices.
+      operationId: getInvoices
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getInvoiceSummary]
+        - name: sectionid
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 75013
+        - name: termid
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 841318
+        - name: is_dgrid
+          in: query
+          schema:
+            type: boolean
+            default: true
+        - name: archived
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Include archived invoices
+      responses:
+        '200':
+          description: Invoice summary data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceSummaryResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:finance:read, section:member:read]
+
+  /ext/finances/invoices/:
+    get:
+      tags:
+        - Finance
+      summary: Get invoice details
+      description: Retrieve detailed information for a specific invoice.
+      operationId: getInvoiceDetails
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getInvoiceDetails]
+        - name: sectionid
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 75013
+        - name: invoiceid
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 121472
+      responses:
+        '200':
+          description: Invoice details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceDetailsResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:finance:read, section:member:read]
+
+    post:
+      tags:
+        - Finance
+      summary: Manage invoices
+      description: Create invoices or record payments
+      operationId: manageInvoices
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [addInvoice, updateBatch]
+        - name: sectionid
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 75013
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/AddInvoiceRequest'
+                - $ref: '#/components/schemas/RecordPaymentRequest'
+      responses:
+        '200':
+          description: Operation successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  invoiceid:
+                    type: integer
+                  data:
+                    type: object
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:finance:read, section:finance:write]
+
+  /ext/events/summary/:
+    get:
+      tags:
+        - Events
+      summary: Get events
+      description: Fetch events for a section and term, with optional filtering for archived events.
+      operationId: getEvents
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getEvents]
+        - name: sectionid
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 75013
+        - name: termid
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 841318
+        - name: onlyArchived
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1]
+            default: 0
+          description: "0 for active events, 1 for archived events"
+      responses:
+        '200':
+          description: List of events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:event:read]
+
+  /v3/events/event/{eventId}/basic_details:
+    get:
+      tags:
+        - Events
+      summary: Get event details
+      description: Fetch basic details for a specific event by ID.
+      operationId: getEventDetails
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1532189
+      responses:
+        '200':
+          description: Event details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventDetailsResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:event:read]
+
+  /v3/events/event/{eventId}/summary:
+    get:
+      tags:
+        - Events
+      summary: Get event summary
+      description: Fetch comprehensive summary information for a specific event.
+      operationId: getEventSummary
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1532189
+      responses:
+        '200':
+          description: Event summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventSummaryResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:event:read]
+
+  /v3/events/event/{eventId}/attendees:
+    get:
+      tags:
+        - Events
+      summary: Get event attendees
+      description: Fetch the list of members attending a specific event.
+      operationId: getEventAttendees
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1532189
+      responses:
+        '200':
+          description: List of event attendees
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventAttendeesResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:event:read]
+
+  /ext/badges/records/:
+    get:
+      tags:
+        - Badges
+      summary: Get badges or badge records
+      description: Fetch available badges for a section or badge progress records for members.
+      operationId: getBadgesOrRecords
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getAvailableBadges, getBadgeRecords]
+        - name: section
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [beavers, cubs, scouts, explorers]
+          description: Section slug
+          example: scouts
+        - name: sectionid
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 57818
+        - name: type_id
+          in: query
+          required: true
+          schema:
+            type: integer
+            enum: [1, 2, 3, 4]
+          description: "Badge type: 1=challenge, 2=activity, 3=staged, 4=core"
+          example: 1
+        - name: payload
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1]
+            default: 1
+          description: Include detailed badge payload data
+        - name: term_id
+          in: query
+          schema:
+            type: integer
+          description: Required for getBadgeRecords action
+          example: 864862
+        - name: badge_id
+          in: query
+          schema:
+            type: integer
+          description: Required for getBadgeRecords action
+          example: 94
+        - name: section_id
+          in: query
+          schema:
+            type: integer
+          description: Required for getBadgeRecords action (duplicate of sectionid)
+        - name: badge_version
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Badge version number
+      responses:
+        '200':
+          description: Badge data or badge records
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/BadgesResponse'
+                  - $ref: '#/components/schemas/BadgeRecordsResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:badge:read]
+
+  /ext/settings/patrols/:
+    post:
+      tags:
+        - Patrols
+      summary: Manage patrols
+      description: Create or delete patrols in a section.
+      operationId: managePatrols
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [add, delete]
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/CreatePatrolRequest'
+                - $ref: '#/components/schemas/DeletePatrolRequest'
+      responses:
+        '200':
+          description: Operation successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  patrol_id:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:admin:write]
+
+  /ext/members/patrols/:
+    get:
+      tags:
+        - Patrols
+      summary: Get patrols with members
+      description: Retrieve patrols and their member assignments for a section and term.
+      operationId: getPatrolsWithPeople
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [getPatrolsWithPeople]
+        - name: sectionid
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 75013
+        - name: termid
+          in: query
+          required: true
+          schema:
+            type: integer
+          example: 841318
+        - name: include_no_patrol
+          in: query
+          schema:
+            type: string
+            enum: ['y']
+          description: Include members without patrol assignment
+      responses:
+        '200':
+          description: Patrols with member assignments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatrolsResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:member:read, section:attendance:write]
+
+    post:
+      tags:
+        - Patrols
+      summary: Manage patrol assignments
+      description: Assign or remove members from patrols.
+      operationId: managePatrolAssignments
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [updateMemberPatrol]
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatrolAssignmentRequest'
+      responses:
+        '200':
+          description: Assignment updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: [section:member:write, section:attendance:write]
+
+  /oauth/token:
+    post:
+      tags:
+        - Authentication
+      summary: Get OAuth access token
+      description: Obtain an OAuth 2.0 access token using client credentials or refresh token.
+      operationId: getToken
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/ClientCredentialsRequest'
+                - $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Access token granted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Invalid credentials
+      security: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: OAuth 2.0 bearer token obtained from /oauth/token endpoint
+
+  schemas:
+    MembersGridResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            identifier:
+              type: string
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  scoutid:
+                    type: integer
+                  firstname:
+                    type: string
+                  lastname:
+                    type: string
+                  dob:
+                    type: string
+                    format: date
+                  patrol:
+                    type: string
+                  custom_data:
+                    type: object
+                    additionalProperties: true
+
+    MembersResponse:
+      type: object
+      properties:
+        identifier:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              scoutid:
+                type: integer
+                example: 76482
+              firstname:
+                type: string
+                example: John
+              lastname:
+                type: string
+                example: Doe
+              dob:
+                type: string
+                format: date
+                example: "2010-05-15"
+              patrol:
+                type: string
+                example: Eagle Patrol
+
+    CustomDataResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              group_id:
+                type: string
+              columns:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    column_id:
+                      type: string
+                    varname:
+                      type: string
+                    label:
+                      type: string
+                    value:
+                      type: string
+
+    InvoiceSummaryResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              invoiceid:
+                type: integer
+                example: 121472
+              name:
+                type: string
+                example: "John Doe (WSJ01)"
+              entrydate:
+                type: string
+                format: date
+              invoice_date:
+                type: string
+                format: date
+              in:
+                type: number
+                format: float
+                description: Income amount
+              exp:
+                type: number
+                format: float
+                description: Expense amount
+              total:
+                type: number
+                format: float
+              finalised:
+                type: string
+
+    InvoiceDetailsResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              type:
+                type: string
+                enum: [Income, Expense]
+              date:
+                type: string
+                format: date
+              amount:
+                type: number
+                format: float
+              category:
+                type: string
+              comments:
+                type: string
+
+    AddInvoiceRequest:
+      type: object
+      required:
+        - name
+        - date
+      properties:
+        name:
+          type: string
+          example: "John Doe (WSJ01)"
+        extra:
+          type: string
+          description: Additional notes
+        date:
+          type: string
+          format: date
+          example: "2025-12-31"
+
+    RecordPaymentRequest:
+      type: object
+      required:
+        - amount
+        - type
+        - date
+        - section_id
+        - invoice_id
+      properties:
+        amount:
+          type: string
+          example: "100.00"
+        comments:
+          type: string
+          example: "Bank transfer received"
+        type:
+          type: string
+          enum: [Income]
+          default: Income
+        date:
+          type: string
+          format: date
+          example: "2025-10-27"
+        section_id:
+          type: string
+          example: "75013"
+        invoice_id:
+          type: string
+          example: "121472"
+        context:
+          type: string
+          enum: [invoice]
+          default: invoice
+        id:
+          type: string
+          default: "0"
+        pay_username:
+          type: string
+          default: "_x_"
+        category:
+          type: string
+          default: "Payment 1"
+          example: "Payment 1"
+
+    EventsResponse:
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            type: object
+            properties:
+              eventid:
+                type: integer
+                example: 1532189
+              name:
+                type: string
+                example: "Summer Camp 2025"
+              startdate:
+                type: string
+                format: date-time
+              enddate:
+                type: string
+                format: date-time
+              archived:
+                type: string
+
+    EventDetailsResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            eventid:
+              type: integer
+            name:
+              type: string
+            location:
+              type: string
+            notes:
+              type: string
+            startdate:
+              type: string
+              format: date-time
+            enddate:
+              type: string
+              format: date-time
+
+    EventSummaryResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            eventid:
+              type: integer
+            name:
+              type: string
+            attendees_count:
+              type: integer
+            cost:
+              type: number
+              format: float
+
+    EventAttendeesResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          member_id:
+            type: integer
+            example: 76482
+          full_name:
+            type: string
+            example: "John Doe"
+          photo_guid:
+            type: string
+          patrol_id:
+            type: integer
+
+    BadgesResponse:
+      type: object
+      properties:
+        badges:
+          type: array
+          items:
+            type: object
+            properties:
+              badge_id:
+                type: integer
+                example: 94
+              name:
+                type: string
+                example: "Outdoor Challenge"
+              badge_version:
+                type: integer
+              badge_group:
+                type: string
+
+    BadgeRecordsResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        data:
+          type: object
+          properties:
+            details:
+              type: object
+            members:
+              type: array
+              items:
+                type: object
+                properties:
+                  member_id:
+                    type: integer
+                  firstname:
+                    type: string
+                  lastname:
+                    type: string
+                  completed:
+                    type: string
+
+    CreatePatrolRequest:
+      type: object
+      required:
+        - sectionid
+        - name
+      properties:
+        sectionid:
+          type: integer
+          example: 75013
+        name:
+          type: string
+          example: "Dragon Patrol"
+        termid:
+          type: integer
+          example: 841318
+
+    DeletePatrolRequest:
+      type: object
+      required:
+        - sectionid
+        - patrolid
+      properties:
+        sectionid:
+          type: integer
+          example: 75013
+        patrolid:
+          type: integer
+          example: 12345
+
+    PatrolsResponse:
+      type: object
+      properties:
+        patrols:
+          type: array
+          items:
+            type: object
+            properties:
+              patrol_id:
+                type: integer
+              patrol_name:
+                type: string
+              members:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    member_id:
+                      type: integer
+                    firstname:
+                      type: string
+                    lastname:
+                      type: string
+
+    PatrolAssignmentRequest:
+      type: object
+      required:
+        - section_id
+        - member_id
+      properties:
+        section_id:
+          type: integer
+          example: 75013
+        member_id:
+          type: integer
+          example: 76482
+        patrol_id:
+          type: integer
+          example: 12345
+          description: Patrol ID to assign, or omit/null to remove from patrol
+
+    ClientCredentialsRequest:
+      type: object
+      required:
+        - grant_type
+        - client_id
+        - client_secret
+      properties:
+        grant_type:
+          type: string
+          enum: [client_credentials]
+        client_id:
+          type: string
+        client_secret:
+          type: string
+        scope:
+          type: string
+          example: "section:member:read section:finance:read"
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - grant_type
+        - refresh_token
+        - client_id
+        - client_secret
+      properties:
+        grant_type:
+          type: string
+          enum: [refresh_token]
+        refresh_token:
+          type: string
+        client_id:
+          type: string
+        client_secret:
+          type: string
+
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+          example: Bearer
+        expires_in:
+          type: integer
+          example: 3600
+        refresh_token:
+          type: string
+        scope:
+          type: string
+          example: "section:member:read section:finance:read"
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        error_description:
+          type: string
+        message:
+          type: string
+
+  responses:
+    UnauthorizedError:
+      description: Authentication token is missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ForbiddenError:
+      description: Insufficient permissions for this operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    RateLimitError:
+      description: Rate limit exceeded. Check Retry-After header.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+          description: Seconds until rate limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
