@@ -1048,7 +1048,7 @@ paths:
 
   # ========== ACCOUNTING ==========
 
-  /ext/finances/accounting/accounts/:
+  /v3/finances/accounting/{section_id}/existing_group_accounts:
     get:
       tags:
         - Accounting
@@ -1056,17 +1056,12 @@ paths:
       description: Retrieves all bank accounts configured for the specified section
       operationId: getBankAccounts
       parameters:
-        - name: action
-          in: query
-          required: true
-          schema:
-            type: string
-            enum: [getAccounts]
         - name: section_id
-          in: query
+          in: path
           required: true
           schema:
             type: integer
+          example: 75013
       responses:
         '200':
           description: Successful response with bank accounts
@@ -1084,7 +1079,7 @@ paths:
       security:
         - bearerAuth: [section:finance:read]
 
-  /ext/finances/accounting/transactions/:
+  /v3/finances/accounting/bank_accounts/{account_id}/transactions:
     get:
       tags:
         - Accounting
@@ -1092,17 +1087,12 @@ paths:
       description: Retrieves paginated transaction history for a specific bank account
       operationId: getBankTransactions
       parameters:
-        - name: action
-          in: query
-          required: true
-          schema:
-            type: string
-            enum: [getTransactions]
         - name: account_id
-          in: query
+          in: path
           required: true
           schema:
             type: integer
+          example: 12345
         - name: page
           in: query
           required: false
@@ -1154,7 +1144,7 @@ paths:
       security:
         - bearerAuth: [section:finance:read]
 
-  /ext/finances/accounting/balances/:
+  /v3/finances/accounting/bank_accounts/section/{section_id}:
     get:
       tags:
         - Accounting
@@ -1162,17 +1152,12 @@ paths:
       description: Retrieves current balances for all section bank accounts
       operationId: getBankAccountBalances
       parameters:
-        - name: action
-          in: query
-          required: true
-          schema:
-            type: string
-            enum: [getBalances]
         - name: section_id
-          in: query
+          in: path
           required: true
           schema:
             type: integer
+          example: 75013
         - name: mode
           in: query
           required: false
@@ -1186,7 +1171,7 @@ paths:
       security:
         - bearerAuth: [section:finance:read]
 
-  /ext/finances/accounting/expense-cards/:
+  /v3/finances/accounting/expense_cardholders/section/{section_id}:
     get:
       tags:
         - Accounting
@@ -1194,17 +1179,12 @@ paths:
       description: Retrieves expense card balances for cardholders
       operationId: getExpenseCardBalances
       parameters:
-        - name: action
-          in: query
-          required: true
-          schema:
-            type: string
-            enum: [getExpenseCards]
         - name: section_id
-          in: query
+          in: path
           required: true
           schema:
             type: integer
+          example: 75013
       responses:
         '200':
           description: Successful response with expense card data
@@ -1213,7 +1193,7 @@ paths:
       security:
         - bearerAuth: [section:finance:read]
 
-  /ext/finances/accounting/year-summary/:
+  /v3/finances/accounting/financial_year/section/{section_id}:
     get:
       tags:
         - Accounting
@@ -1221,17 +1201,12 @@ paths:
       description: Retrieves financial summary data for all years in a section
       operationId: getFinancialYearSummary
       parameters:
-        - name: action
-          in: query
-          required: true
-          schema:
-            type: string
-            enum: [getYearSummary]
         - name: section_id
-          in: query
+          in: path
           required: true
           schema:
             type: integer
+          example: 75013
       responses:
         '200':
           description: Successful response with financial year data
@@ -1262,7 +1237,7 @@ paths:
       security:
         - bearerAuth: [section:finance:read]
 
-  /ext/finances/accounting/cashbook/:
+  /v3/finances/accounting/financial_year/cashbook/transactions/year/{year_id}:
     get:
       tags:
         - Accounting
@@ -1270,22 +1245,12 @@ paths:
       description: Retrieves cashbook transactions for a specific financial year
       operationId: getFinancialYearCashbook
       parameters:
-        - name: action
-          in: query
-          required: true
-          schema:
-            type: string
-            enum: [getCashbook]
-        - name: section_id
-          in: query
-          required: true
-          schema:
-            type: integer
         - name: year_id
-          in: query
+          in: path
           required: true
           schema:
             type: integer
+          example: 12345
         - name: mode
           in: query
           required: false
@@ -1299,7 +1264,7 @@ paths:
       security:
         - bearerAuth: [section:finance:read]
 
-  /ext/finances/accounting/annual-report/:
+  /v3/finances/accounting/financial_year/annual_report/{year_id}:
     get:
       tags:
         - Accounting
@@ -1307,22 +1272,12 @@ paths:
       description: Retrieves comprehensive annual financial report for a year
       operationId: getAnnualReport
       parameters:
-        - name: action
-          in: query
-          required: true
-          schema:
-            type: string
-            enum: [getAnnualReport]
-        - name: section_id
-          in: query
-          required: true
-          schema:
-            type: integer
         - name: year_id
-          in: query
+          in: path
           required: true
           schema:
             type: integer
+          example: 12345
       responses:
         '200':
           description: Successful response with annual report
@@ -1331,7 +1286,7 @@ paths:
       security:
         - bearerAuth: [section:finance:read]
 
-  /ext/finances/accounting/items/:
+  /v3/finances/accounting/items/section/{section_id}:
     get:
       tags:
         - Accounting
@@ -1339,17 +1294,12 @@ paths:
       description: Retrieves accounting item categories for financial transactions
       operationId: getAccountingItems
       parameters:
-        - name: action
-          in: query
-          required: true
-          schema:
-            type: string
-            enum: [getItems]
         - name: section_id
-          in: query
+          in: path
           required: true
           schema:
             type: integer
+          example: 75013
       responses:
         '200':
           description: Successful response with accounting items
@@ -1407,7 +1357,7 @@ paths:
       security:
         - bearerAuth: [section:admin:read]
 
-  /ext/settings/subscriptions/:
+  /ext/settings/upgrades/:
     get:
       tags:
         - Settings
@@ -1564,7 +1514,7 @@ paths:
 
   # ========== FACILITIES ==========
 
-  /ext/facilities/types/:
+  /ext/facilities/:
     get:
       tags:
         - Facilities
@@ -1595,7 +1545,7 @@ paths:
       security:
         - bearerAuth: []
 
-  /ext/facilities/campsites/:
+  /v3/campsites/:
     get:
       tags:
         - Facilities
@@ -1902,7 +1852,7 @@ paths:
 
   # ========== KIT LISTS ==========
 
-  /ext/events/kit-lists/:
+  /v3/kit/{section_id}/event:
     get:
       tags:
         - Kit Lists
@@ -1910,17 +1860,12 @@ paths:
       description: Retrieves all kit lists configured for section events
       operationId: getKitLists
       parameters:
-        - name: action
-          in: query
-          required: true
-          schema:
-            type: string
-            enum: [getKitLists]
         - name: section_id
-          in: query
+          in: path
           required: true
           schema:
             type: integer
+          example: 75013
       responses:
         '200':
           description: Successful response with kit lists
@@ -1929,12 +1874,26 @@ paths:
       security:
         - bearerAuth: [section:event:read]
 
+  /v3/kit/{section_id}/event/{collection_id}:
     post:
       tags:
         - Kit Lists
       summary: Add item to kit list
       description: Adds a new item to an event kit list collection
       operationId: addKitListItem
+      parameters:
+        - name: section_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 75013
+        - name: collection_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 12345
       requestBody:
         required: true
         content:
@@ -1942,15 +1901,9 @@ paths:
             schema:
               type: object
               required:
-                - section_id
-                - collection_id
                 - name
                 - items
               properties:
-                section_id:
-                  type: integer
-                collection_id:
-                  type: integer
                 name:
                   type: string
                 instructions:
@@ -2057,7 +2010,7 @@ paths:
       security:
         - bearerAuth: [section:programme:write, section:event:write]
 
-  /ext/events/risk-categories/:
+  /v3/risk_assessments/{section_id}/categories:
     get:
       tags:
         - Risk Assessments
@@ -2065,17 +2018,12 @@ paths:
       description: Retrieves available risk categories for assessments
       operationId: getRiskCategories
       parameters:
-        - name: action
-          in: query
-          required: true
-          schema:
-            type: string
-            enum: [getCategories]
         - name: section_id
-          in: query
+          in: path
           required: true
           schema:
             type: integer
+          example: 75013
       responses:
         '200':
           description: Successful response with risk categories
@@ -2122,7 +2070,7 @@ paths:
 
   # ========== ACCESS ==========
 
-  /ext/access/leaders/:
+  /ext/settings/access/:
     get:
       tags:
         - Access
@@ -2135,17 +2083,20 @@ paths:
           required: true
           schema:
             type: string
-            enum: [getLeaders]
-        - name: section_id
+            enum: [getUsersForSection]
+        - name: sectionid
           in: query
           required: true
           schema:
             type: integer
+          example: 75013
         - name: card_mode
           in: query
           required: false
           schema:
-            type: boolean
+            type: integer
+            enum: [0, 1]
+          description: "0 for list mode, 1 for card mode"
       responses:
         '200':
           description: Successful response with user access list
