@@ -9,9 +9,9 @@ This repository hosts comprehensive API documentation using OpenAPI specificatio
 
 ## 📚 Available APIs
 
-### Online Scout Manager (OSM) API v1.0.0
+### Online Scout Manager (OSM) API v1.1.0
 
-Complete REST API for managing scout sections, members, events, badges, invoices, and patrols.
+Complete REST API for managing scout sections, members, events, badges, invoices, patrols, facilities, programme, and more.
 
 **Base URL**: `https://www.onlinescoutmanager.co.uk`  
 **Authentication**: OAuth 2.0 Bearer Token
@@ -26,24 +26,71 @@ Complete REST API for managing scout sections, members, events, badges, invoices
 - `GET /ext/customdata/` - Get custom data for members
 - `POST /ext/customdata/` - Update custom member data
 
-##### Finance
+##### Finance & Accounting
 - `GET /ext/finances/invoices/summary/` - Get invoice summary
 - `GET /ext/finances/invoices/` - Get invoice details
 - `POST /ext/finances/invoices/` - Create invoices or record payments
+- `GET /v3/finances/accounting/accounting_items` - Get accounting item categories
+- `GET /v3/finances/accounting/annual_report` - Get annual financial report
+- `GET /v3/finances/accounting/expense_card_balances` - Get expense card balances
+- `GET /v3/finances/accounting/bank_accounts` - Get bank account balances
+- `GET /v3/finances/accounting/bank_accounts/{accountId}/transactions` - Get bank transactions
+- `GET /v3/finances/accounting/financial_years/{yearId}/cashbook` - Get cashbook entries
+- `GET /v3/finances/accounting/financial_years/{yearId}/summary` - Get financial year summary
+
+##### Online Payments
+- `GET /ext/finances/onlinepayments/` - Get payment schemes and schedules
+- `GET /v3/finances/online_payments/schedules/{scheduleId}` - Get schedule details
+- `GET /v3/finances/online_payments/schemes/{schemeId}/payment_status` - Get payment status
+- `GET /v3/finances/online_payments/schemes/{schemeId}/uninitiated_members` - Get uninitiated members
+
+##### Gift Aid
+- `GET /ext/finances/giftaid/` - Get gift aid structure and grid data
 
 ##### Events
 - `GET /ext/events/summary/` - Get events list
+- `POST /v3/events/event` - Create new event
+- `DELETE /v3/events/event/{eventId}` - Delete event
 - `GET /v3/events/event/{eventId}/basic_details` - Get event details
 - `GET /v3/events/event/{eventId}/summary` - Get event summary
 - `GET /v3/events/event/{eventId}/attendees` - Get event attendees
 
 ##### Badges
 - `GET /ext/badges/records/` - Get available badges or badge records
+- `GET /ext/badges/summary/` - Get badges for specific member
+- `GET /ext/badges/duebadges/` - Get due badges for members
+- `GET /ext/badges/stock/` - Get badge stock levels
 
 ##### Patrols
 - `POST /ext/settings/patrols/` - Create or delete patrols
 - `GET /ext/members/patrols/` - Get patrols with member assignments
 - `POST /ext/members/patrols/` - Manage patrol assignments
+
+##### Programme
+- `POST /v3/programme/meeting` - Add programme meeting
+- `PUT /v3/programme/meeting/{meetingId}` - Update programme meeting
+- `GET /v3/programme/summary` - Get programme summary
+
+##### Facilities
+- `GET /ext/settings/facilities/` - Get facility types and locations
+- `GET /v3/campsites/search` - Search campsites
+
+##### Kit & Risk Assessments
+- `GET /v3/kit/` - Get kit lists
+- `POST /v3/kit/list/{listId}/item` - Add kit list item
+- `GET /v3/risk_assessments/` - Get risk assessments
+- `POST /v3/risk_assessments/assessment/{assessmentId}/item` - Add risk assessment item
+- `GET /v3/risk_assessments/categories` - Get risk assessment categories
+
+##### Settings & Access
+- `GET /ext/settings/` - Get section subscriptions
+- `GET /ext/settings/mysubscriptions/` - Get user subscriptions
+- `GET /ext/generic/startup/` - Get dashboard data
+- `GET /v3/access/users` - Get users with leader access
+
+##### Updates
+- `GET /ext/settings/updates/` - Get email delivery report
+- `GET /ext/settings/updates/rows/` - Get email delivery report details
 
 ##### Authentication
 - `POST /oauth/token` - Get OAuth access token
@@ -101,10 +148,13 @@ grant_type=client_credentials&client_id=YOUR_CLIENT_ID&client_secret=YOUR_CLIENT
 |-------|-------------|
 | `section:member:read` | Read member information |
 | `section:member:write` | Update member data |
-| `section:finance:read` | View financial data |
+| `section:finance:read` | View financial data (invoices, payments, accounting) |
 | `section:finance:write` | Manage invoices and payments |
 | `section:event:read` | Access event information |
-| `section:badge:read` | View badge records |
+| `section:event:write` | Create and manage events |
+| `section:badge:read` | View badge records and progress |
+| `section:programme:read` | View programme meetings and activities |
+| `section:programme:write` | Add and update programme meetings |
 | `section:admin:write` | Administrative operations |
 | `section:attendance:write` | Manage attendance and patrols |
 
